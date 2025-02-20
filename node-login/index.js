@@ -47,8 +47,8 @@ const database = mysql.createConnection({
 
 // function to add the details
 app.post('/add', async(req, res) => {
-  const query = `INSERT INTO login_details (firstname, lastname,country,policy,gender) VALUES (?, ?, ?, ?, ?)`;
-   database.query(query, [req.body.firstname, req.body.lastname, req.body.country, req.body.policy, req.body.gender], (err, results) => {
+  const query = `INSERT INTO login_details (firstname, lastname,dob,email,coverage_amount,country,policy,gender) VALUES (?, ?, ?, ?, ?, ?, ? ,?)`;
+   database.query(query, [req.body.firstname, req.body.lastname, req.body.dob,req.body.email,req.body.coverageAmount,req.body.country, req.body.policy, req.body.gender], (err, results) => {
     if (err) throw err;
     else{
     insertId = results.insertId;
@@ -58,7 +58,7 @@ app.post('/add', async(req, res) => {
     }
   });
 
- writeToSheet([[req.body.firstname, req.body.lastname,req.body.country,req.body.policy,req.body.gender]]);
+ writeToSheet([[req.body.firstname, req.body.lastname,req.body.dob,req.body.email,req.body.coverageAmount,req.body.country,req.body.policy,req.body.gender]]);
 
    
 });
@@ -94,6 +94,23 @@ async function writeToSheet(values) {
       console.error('error', error);  // Logs errors.
   }
 }
+
+// Fetch data from MySQL and render it in the dashboard
+app.get('/all', (req, res) => {
+  const query = 'SELECT * FROM login_details';
+
+  database.query(query, [insertId],(err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Error fetching data');
+    }
+    else{
+      console.log(data);
+    // Render the dashboard view with data from the database
+    res.render('dashboard', { applications: data });
+    }
+  });
+});
 
 router.use(function (req,res,next) {
   console.log('/' + req.method);
